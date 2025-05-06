@@ -57,14 +57,12 @@ jobs:
             type=ref,event=branch
             type=sha,format=short
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-
-      - name: Tag and push Docker image to GHCR
-        run: |
-          # Find the locally built image
-          LOCAL_IMAGE=$(docker images apache/polaris:latest --format "{{.Repository}}:{{.Tag}}")
-          
-          # Tag and push with all the generated tags
-          for TAG in ${{ steps.meta.outputs.tags }}; do
-            docker tag $LOCAL_IMAGE $TAG
-            docker push $TAG
-          done
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./polaris-quarkus-server/src/main/docker/Dockerfile.jvm
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
